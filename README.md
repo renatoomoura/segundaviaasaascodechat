@@ -39,13 +39,13 @@ Manual Instalação N8N
 </p>
 👉 https://github.com/EngajamentoFlow/n8n
 </p>
-Manual Instalação QUEPASA
+Manual Instalação Conector
 </p>
-👉 https://github.com/EngajamentoFlow/quepasa
-</p></p>
-Montando Caixa de Entrada
+👉 https://github.com/EngajamentoFlow/conectorcodechat
 </p>
-👉 https://github.com/EngajamentoFlow/quepasan8nchatwoot
+Manual Instalação Codechat
+</p>
+👉 https://github.com/EngajamentoFlow/codechat
 </p>
 
 ----------------------------------------------------------------------------
