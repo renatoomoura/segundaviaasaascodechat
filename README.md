@@ -70,7 +70,7 @@ Acesse depois
 </p>
 <img src="https://github.com/EngajamentoFlow/segundaviaasaasquepasa/blob/main/N8Netapa2.png" alt="Quepasa-logo" width="700" />
 </p>
-Adione Urle click em Importar 
+Adicione Url e click em Importar
 </p>
 
 ```
