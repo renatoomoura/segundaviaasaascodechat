@@ -1,0 +1,514 @@
+{
+  "name": "Workflow Segunda Via de Fatura Asaas com CodeChat",
+  "nodes": [
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "CPF",
+              "value": "={{ $node[\"CPF\"].json[\"cpf\"] }}"
+            },
+            {
+              "name": "Token Assas",
+              "value": "=$aact_YTU5YTE0M2M2N2I4MTliNzk0YTI5N2U5MzdjNWZmNDQ6OjAwMDAwMDAwMDAwMDAyMjM2MTA6OiRhYWNoXzllN2Q2ODIyLTI2MjgtNDYzNC1iNTBlLTkwMzA0NjM4NGY4OQ=="
+            },
+            {
+              "name": "Nome",
+              "value": "={{ $node.Webhook.json.body.conversation.messages[0].sender.name }}"
+            }
+          ],
+          "number": [
+            {
+              "name": "Telefone",
+              "value": "={{ $node[\"Webhook\"].json[\"body\"][\"conversation\"][\"messages\"][0][\"sender\"][\"phone_number\"].replace(\"+\", \"\") }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3380ddc8-e0ef-4064-9838-15ce458dac2d",
+      "name": "Ajusta as Informações",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        360,
+        680
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.asaas.com/api/v3/customers",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "cpfCnpj",
+              "value": "={{ $node.CPF.json.cpf }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $json[\"Token Assas\"] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ec753dba-f47d-4b40-b4c0-f7047772ef92",
+      "name": "Consulta CPF CNPJ na Asaas",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        580,
+        680
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://www.asaas.com/api/v3/payments",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "customer",
+              "value": "={{ $node[\"Consulta CPF CNPJ na Asaas\"].json.data[0].id }}"
+            },
+            {
+              "name": "status",
+              "value": "PENDING"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "access_token",
+              "value": "={{ $node[\"Ajusta as Informações\"].json[\"Token Assas\"] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a61bbef1-f76f-42fd-a5fc-c7a22ab9ec0b",
+      "name": "Consulta Fatura",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        1280,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.data[0].email }}",
+              "operation": "contains",
+              "value2": "=@"
+            }
+          ]
+        }
+      },
+      "id": "a8be6d90-4dda-4e2a-bd7f-3adaf655e00c",
+      "name": "Valida se existe o Cliente",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        780,
+        680
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.totalCount }}",
+              "operation": "equal",
+              "value2": 1
+            }
+          ]
+        }
+      },
+      "id": "b80979c9-e2c7-43a1-a319-3d4a22ff5078",
+      "name": "Valida se existe fatura Existente",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1500,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.quantidade_digitos }}",
+              "operation": "equal",
+              "value2": 11
+            }
+          ]
+        }
+      },
+      "id": "41206ec4-c43d-4ee8-a4dd-3b74ac661443",
+      "name": "Verifica se mensagem e Valida",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        700,
+        420
+      ],
+      "continueOnFail": true,
+      "notes": "Sucesso"
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "cpf",
+              "value": "={{ $json.body.content }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3e2057f3-0c0a-406f-9da2-4eb8e305e478",
+      "name": "CPF",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        680,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obter o número do CPF ou CNPJ a partir de uma variável\nconst numero = items[0].json.cpf;\n\n// Remover todos os caracteres especiais do número\nconst numeroSemPontuacao = numero.replace(/[^\\d]+/g,'');\n\n// Verificar se o número é um CPF ou CNPJ válido\nif (numeroSemPontuacao.length === 11) {\n  // O número é um CPF\n  return {quantidade_digitos: 11};\n} else if (numeroSemPontuacao.length === 14) {\n  // O número é um CNPJ\n  return {quantidade_digitos: 11};\n} else {\n  // O número não é válido\n  return {erro: \"O número informado não é um CPF ou CNPJ válido.\"};\n}\n"
+      },
+      "id": "d1c0aba5-f647-4951-b9d4-97eca26f4bf2",
+      "name": "Verifica  CPF ou CNPJ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [
+        420,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "asaascodechat",
+        "options": {}
+      },
+      "id": "687d2347-92be-40ef-b244-843a78a1b25a",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        400,
+        180
+      ],
+      "webhookId": "54d86f1e-a878-47b4-9ec6-c52103afa6d1"
+    },
+    {
+      "parameters": {
+        "number": "={{ $node[\"Ajusta as Informações\"].json.Telefone }}",
+        "textProperty": "=✅ Localizei seu Cadastro! \n\n👉 *{{ $json.data[0].name }}* \n\n✅ Só mais um instante, por favor!"
+      },
+      "id": "5eeb8819-9584-4ccc-ae51-57ea7a07d86b",
+      "name": "CodeChat Api",
+      "type": "n8n-nodes-codechat-wapi.CodeChatApi",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        420
+      ],
+      "credentials": {
+        "codeChatCredsApi": {
+          "id": "5",
+          "name": "1530420926"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "number": "={{ $node[\"Ajusta as Informações\"].json.Telefone }}",
+        "textProperty": "=🧑‍🚒 Segue a segunda-via da sua Fatura!\n\n👉 *Fatura:* {{ $node[\"Consulta Fatura\"].json[\"data\"][0][\"bankSlipUrl\"] }}\n\n👉  *Nome:* {{ $node[\"Consulta Fatura\"].json[\"data\"][0][\"description\"] }}\n\n👉  *Valor:* R$ {{ $node[\"Consulta Fatura\"].json[\"data\"][0][\"value\"] }},00"
+      },
+      "id": "07e8ca4a-cdf5-4041-a70a-1613ef17ec44",
+      "name": "CodeChat Api1",
+      "type": "n8n-nodes-codechat-wapi.CodeChatApi",
+      "typeVersion": 1,
+      "position": [
+        1720,
+        300
+      ],
+      "credentials": {
+        "codeChatCredsApi": {
+          "id": "5",
+          "name": "1530420926"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "number": "={{ $node[\"Ajusta as Informações\"].json.Telefone }}",
+        "textProperty": "=✅ *Estamos Finalizando seu atendimento*\n\n👉 Segue Numero de Protocolo: {{ $json.message.id }}\n\n✅ Qualquer Dúvida digite 3 para falar com Suporte"
+      },
+      "id": "83f90da6-cdad-4b74-8eef-e2aabf16a8d4",
+      "name": "CodeChat Api2",
+      "type": "n8n-nodes-codechat-wapi.CodeChatApi",
+      "typeVersion": 1,
+      "position": [
+        1980,
+        460
+      ],
+      "credentials": {
+        "codeChatCredsApi": {
+          "id": "5",
+          "name": "1530420926"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "number": "={{ $node[\"Ajusta as Informações\"].json.Telefone }}",
+        "textProperty": "=👉  Você não tem nenhuma fatura vencidada!"
+      },
+      "id": "a0a82771-a2cd-473a-b9e3-7e91a3e37e6a",
+      "name": "CodeChat Api3",
+      "type": "n8n-nodes-codechat-wapi.CodeChatApi",
+      "typeVersion": 1,
+      "position": [
+        1720,
+        620
+      ],
+      "credentials": {
+        "codeChatCredsApi": {
+          "id": "5",
+          "name": "1530420926"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "number": "={{ $node[\"Ajusta as Informações\"].json.Telefone }}",
+        "textProperty": "=✅ Não localizamos seu Cadastro!\n\n✅ Por favor, entre em contato o financeiro!"
+      },
+      "id": "16644200-3f55-4bdb-a9cc-dd9460789693",
+      "name": "CodeChat Api4",
+      "type": "n8n-nodes-codechat-wapi.CodeChatApi",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        700
+      ],
+      "credentials": {
+        "codeChatCredsApi": {
+          "id": "5",
+          "name": "1530420926"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Ajusta as Informações": {
+      "main": [
+        [
+          {
+            "node": "Consulta CPF CNPJ na Asaas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta Fatura": {
+      "main": [
+        [
+          {
+            "node": "Valida se existe fatura Existente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consulta CPF CNPJ na Asaas": {
+      "main": [
+        [
+          {
+            "node": "Valida se existe o Cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valida se existe o Cliente": {
+      "main": [
+        [
+          {
+            "node": "CodeChat Api",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CodeChat Api4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Valida se existe fatura Existente": {
+      "main": [
+        [
+          {
+            "node": "CodeChat Api1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CodeChat Api3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verifica se mensagem e Valida": {
+      "main": [
+        [
+          {
+            "node": "Ajusta as Informações",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CPF": {
+      "main": [
+        [
+          {
+            "node": "Verifica  CPF ou CNPJ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verifica  CPF ou CNPJ": {
+      "main": [
+        [
+          {
+            "node": "Verifica se mensagem e Valida",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "CPF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CodeChat Api": {
+      "main": [
+        [
+          {
+            "node": "Consulta Fatura",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CodeChat Api1": {
+      "main": [
+        [
+          {
+            "node": "CodeChat Api2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CodeChat Api3": {
+      "main": [
+        [
+          {
+            "node": "CodeChat Api2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {},
+  "versionId": "b959c2fb-67fe-413c-b45c-ced6f5c9441b",
+  "id": "31",
+  "meta": {
+    "instanceId": "11fa22f478aecd2cf79cefdd89ce195e7f6822644ae05eb329e01cd898eecded"
+  },
+  "tags": [
+    {
+      "createdAt": "2023-05-02T11:27:24.090Z",
+      "updatedAt": "2023-05-02T11:27:24.090Z",
+      "id": "1",
+      "name": "SUFFICIT"
+    },
+    {
+      "createdAt": "2023-05-02T11:28:17.108Z",
+      "updatedAt": "2023-05-02T11:28:17.108Z",
+      "id": "2",
+      "name": "EngajamentoFlow"
+    },
+    {
+      "createdAt": "2023-05-02T11:28:17.108Z",
+      "updatedAt": "2023-05-02T11:28:17.108Z",
+      "id": "3",
+      "name": "QUEPASA"
+    },
+    {
+      "createdAt": "2023-05-02T11:28:51.132Z",
+      "updatedAt": "2023-05-02T11:28:51.132Z",
+      "id": "5",
+      "name": "CHATWOOT"
+    }
+  ]
+}
