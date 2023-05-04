@@ -74,7 +74,7 @@ Adicione Url e click em Importar
 </p>
 
 ```
-https://raw.githubusercontent.com/EngajamentoFlow/segundaviaasaasquepasa/main/Workflow.json
+https://raw.githubusercontent.com/EngajamentoFlow/segundaviaasaascodechat/main/Workflow_Segunda_Via_de_Fatura_Asaas_com_CodeChat.json
 ```
 
 </p>
