@@ -215,7 +215,7 @@
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "asaascodechat",
+        "path": "asaas",
         "options": {}
       },
       "id": "687d2347-92be-40ef-b244-843a78a1b25a",
